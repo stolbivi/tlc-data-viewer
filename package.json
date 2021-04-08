@@ -1,0 +1,25 @@
+{
+  "name": "tlc_data_viewer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --project ./",
+    "start": "node .",
+    "watch": "nodemon --delay 10"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^4.17.11",
+    "@types/node": "^14.14.37",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}

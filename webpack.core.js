@@ -49,20 +49,26 @@ const initEntry = (dist, target, entry, filename) => {
 };
 
 const addCSSModules = (object, cssfilename) => {
-  object.module.rules.push({
-    test: /\.s[ac]ss$/i,
-    use: [
-      MiniCssExtractPlugin.loader,
-      {
-        loader: "css-loader",
-        options: {
-          importLoaders: 1,
+  object.module.rules.push(
+    {
+      test: /\.s[ac]ss$/i,
+      use: [
+        MiniCssExtractPlugin.loader,
+        {
+          loader: "css-loader",
+          options: {
+            importLoaders: 1,
+          },
         },
-      },
-      "postcss-loader",
-      "sass-loader",
-    ],
-  });
+        "postcss-loader",
+        "sass-loader",
+      ],
+    },
+    {
+      test: /\.css$/,
+      use: [MiniCssExtractPlugin.loader, "css-loader"],
+    }
+  );
   object.plugins = [
     new MiniCssExtractPlugin({
       filename: cssfilename,

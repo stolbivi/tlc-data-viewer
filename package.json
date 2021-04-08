@@ -2,13 +2,12 @@
   "name": "tlc_data_viewer",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "public/app.js",
   "scripts": {
-    "build": "tsc --project ./",
-    "start": "node .",
-    "watch": "nodemon --delay 10",
     "init": "node ./scripts/build.js --command init",
     "wp": "webpack --mode production",
+    "start": "node .",
+    "watch": "nodemon --delay 10",
     "release": "npm run init & npm run wp",
     "pack": "node ./scripts/build.js --command pack"
   },

@@ -6,10 +6,10 @@ const DIST = "public";
 module.exports = function (_env, argv) {
   return [
     addHTMLModules(
-        initEntry(DIST, "./src/index.tsx", "index.js"),
+        initEntry(DIST, "web","./src/index.tsx", "index.js"),
         "static/index.html",
         "index.css"
     ),
-    // initEntry(DIST, "./src/app.ts", "app.js"),
+    initEntry(DIST, "node","./src/app.ts", "app.js"),
   ];
 };

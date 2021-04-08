@@ -8,9 +8,10 @@ const BABEL_OPTIONS = {
   envName: "production",
 };
 
-const initEntry = (dist, entry, filename) => {
+const initEntry = (dist, target, entry, filename) => {
   return {
     entry: entry,
+    target: target,
     output: {
       path: path.resolve(__dirname, dist),
       filename: filename,

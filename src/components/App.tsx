@@ -24,6 +24,7 @@ export const App: React.FC<Props> = ({}) => {
   );
   const dispatch: Dispatch<any> = useDispatch();
   const mapElement = useRef<HTMLDivElement>(null);
+  const hoveredId = useRef<number>();
   const selectedId = useRef<number>();
 
   const selectZoneDispatch = useCallback(
@@ -35,15 +36,17 @@ export const App: React.FC<Props> = ({}) => {
 
   const onZoneSelect = useCallback((map: MapBoxGL.Map, e: any) => {
     if (e.features && e.features.length > 0) {
-      let feature = e.features[0];
-      let zone = feature.properties as Zone;
-      console.log("Selecting zone:", zone);
+      let zone = e.features[0].properties as Zone;
       if (selectedId.current) {
-        console.log("Clearing state for:", selectedId.current);
-        map.removeFeatureState({
-          source: SOURCE_ZONES,
-          id: selectedId.current,
-        });
+        map.setFeatureState(
+          {
+            source: SOURCE_ZONES,
+            id: selectedId.current,
+          },
+          {
+            selected: false,
+          }
+        );
       }
       selectZoneDispatch(zone.LocationID);
       map.setFeatureState(
@@ -58,8 +61,51 @@ export const App: React.FC<Props> = ({}) => {
     }
   }, []);
 
+  const onZoneHover = useCallback((map: MapBoxGL.Map, e: any) => {
+    map.getCanvas().style.cursor = "pointer";
+    if (e.features && e.features.length > 0) {
+      let zone = e.features[0].properties as Zone;
+      if (hoveredId.current) {
+        map.setFeatureState(
+          {
+            source: SOURCE_ZONES,
+            id: hoveredId.current,
+          },
+          {
+            hovered: false,
+          }
+        );
+      }
+      hoveredId.current = zone.LocationID;
+      map.setFeatureState(
+        {
+          source: SOURCE_ZONES,
+          id: zone.LocationID,
+        },
+        {
+          hovered: true,
+        }
+      );
+    }
+  }, []);
+
+  const onZoneLeave = useCallback((map: MapBoxGL.Map) => {
+    map.getCanvas().style.cursor = "";
+    if (hoveredId.current) {
+      map.setFeatureState(
+        {
+          source: SOURCE_ZONES,
+          id: hoveredId.current,
+        },
+        {
+          hovered: false,
+        }
+      );
+    }
+    hoveredId.current = -1;
+  }, []);
+
   useEffect(() => {
-    console.log("Updated selected id:", zoneState.selectedId);
     selectedId.current = zoneState.selectedId;
   }, [zoneState.selectedId]);
 
@@ -105,7 +151,12 @@ export const App: React.FC<Props> = ({}) => {
             "case",
             ["boolean", ["feature-state", "selected"], false],
             0.75,
-            0.25,
+            [
+              "case",
+              ["boolean", ["feature-state", "hovered"], false],
+              0.5,
+              0.25,
+            ],
           ],
         },
       });
@@ -129,12 +180,8 @@ export const App: React.FC<Props> = ({}) => {
         },
       });
       map.on("click", LAYER_ZONE_FILL, (e) => onZoneSelect(map, e));
-      map.on("mousemove", LAYER_ZONE_FILL, function () {
-        map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mouseleave", LAYER_ZONE_FILL, function () {
-        map.getCanvas().style.cursor = "";
-      });
+      map.on("mousemove", LAYER_ZONE_FILL, (e) => onZoneHover(map, e));
+      map.on("mouseleave", LAYER_ZONE_FILL, () => onZoneLeave(map));
     });
   }, []);
 

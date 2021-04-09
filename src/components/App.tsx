@@ -18,13 +18,13 @@ export const App: React.FC<Props> = ({}) => {
   const SOURCE_ZONES = "zones-overlay";
   const LAYER_ZONE_FILL = "zone-fill";
 
-  const mapElement = useRef<HTMLDivElement>(null);
-
   const zoneState: ZoneState = useSelector(
     (state: ZoneState) => state,
     shallowEqual
   );
   const dispatch: Dispatch<any> = useDispatch();
+  const mapElement = useRef<HTMLDivElement>(null);
+  const selectedId = useRef<number>();
 
   const selectZoneDispatch = useCallback(
     (locationId: number) => {
@@ -32,6 +32,36 @@ export const App: React.FC<Props> = ({}) => {
     },
     [dispatch]
   );
+
+  const onZoneSelect = useCallback((map: MapBoxGL.Map, e: any) => {
+    if (e.features && e.features.length > 0) {
+      let feature = e.features[0];
+      let zone = feature.properties as Zone;
+      console.log("Selecting zone:", zone);
+      if (selectedId.current) {
+        console.log("Clearing state for:", selectedId.current);
+        map.removeFeatureState({
+          source: SOURCE_ZONES,
+          id: selectedId.current,
+        });
+      }
+      selectZoneDispatch(zone.LocationID);
+      map.setFeatureState(
+        {
+          source: SOURCE_ZONES,
+          id: zone.LocationID,
+        },
+        {
+          selected: true,
+        }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("Updated selected id:", zoneState.selectedId);
+    selectedId.current = zoneState.selectedId;
+  }, [zoneState.selectedId]);
 
   useEffect(() => {
     MapBoxGL.accessToken = TOKEN;
@@ -98,36 +128,6 @@ export const App: React.FC<Props> = ({}) => {
           "text-justify": "center",
         },
       });
-      let selectedId = -1;
-      const onZoneSelect = function (map: MapBoxGL.Map, e: any) {
-        const clearState = (id: number) => {
-          console.log("Clearing state for:", id);
-          map.removeFeatureState({
-            source: SOURCE_ZONES,
-            id: id,
-          });
-        };
-        if (e.features && e.features.length > 0) {
-          let feature = e.features[0];
-          let zone = feature.properties as Zone;
-          console.log("Selecting zone:", zone);
-          clearState(selectedId);
-          selectedId = zone.LocationID;
-          selectZoneDispatch(zone.LocationID);
-          map.setFeatureState(
-            {
-              source: SOURCE_ZONES,
-              id: zone.LocationID,
-            },
-            {
-              selected: true,
-            }
-          );
-        } else {
-          clearState(selectedId);
-          selectZoneDispatch(-1);
-        }
-      };
       map.on("click", LAYER_ZONE_FILL, (e) => onZoneSelect(map, e));
       map.on("mousemove", LAYER_ZONE_FILL, function () {
         map.getCanvas().style.cursor = "pointer";

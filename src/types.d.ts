@@ -1,4 +1,4 @@
-interface Zone {
+interface ZoneFeature {
   LocationID: number;
   OBJECTID: number;
   Shape_Area: number;
@@ -9,6 +9,7 @@ interface Zone {
 
 interface ZoneState {
   selectedId: number;
+  routes: Route[];
 }
 
 interface ZoneAction {
@@ -17,6 +18,29 @@ interface ZoneAction {
 
 interface SelectZoneAction extends ZoneAction {
   locationId: number;
+}
+
+interface GetDestAction extends ZoneAction {
+  routes: Route[];
+}
+
+interface Route {
+  id: number;
+  source: string;
+  startId: number;
+  endId: number;
+  pickupTime: number;
+  dropOffTime: number;
+  passengerCount: number;
+  distance: number;
+  fare: number;
+  extra: number;
+  tip: number;
+  mtaTax: number;
+  improvementSurcharge: number;
+  congestionSurcharge: number;
+  tolls: number;
+  total: number;
 }
 
 type Dispatch = (action: ZoneAction) => ZoneAction;

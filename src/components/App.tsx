@@ -7,25 +7,54 @@ import { selectZone } from "../store/ActionCreators";
 
 type Props = {};
 
-export const App: React.FC<Props> = ({}) => {
-  const KEY = "7y3DwqhCAc5Y7Wr95RR9";
-  const TOKEN =
-    "pk.eyJ1Ijoic3RvbGJpdmkiLCJhIjoiY2tuOHg0N2UyMTF5bzJxcWRnb3huYWxjciJ9.DkRrWXvSJ2OFC6HMLANPAA";
-  const STYLE = "https://api.maptiler.com/maps/streets/style.json?key=" + KEY;
-  const DATA =
-    "https://api.maptiler.com/data/00faea4c-94f8-437c-af5d-fc153669190f/features.json?key=" +
-    KEY;
-  const SOURCE_ZONES = "zones-overlay";
-  const LAYER_ZONE_FILL = "zone-fill";
+const KEY = "7y3DwqhCAc5Y7Wr95RR9";
+const TOKEN =
+  "pk.eyJ1Ijoic3RvbGJpdmkiLCJhIjoiY2tuOHg0N2UyMTF5bzJxcWRnb3huYWxjciJ9.DkRrWXvSJ2OFC6HMLANPAA";
+const STYLE = "https://api.maptiler.com/maps/streets/style.json?key=" + KEY;
+const DATA =
+  "https://api.maptiler.com/data/00faea4c-94f8-437c-af5d-fc153669190f/features.json?key=" +
+  KEY;
+const SOURCE_ZONES = "zones-overlay";
+const LAYER_ZONE_FILL = "zone-fill";
 
+function updateFeature(
+  map: MapBoxGL.Map,
+  ref: React.MutableRefObject<number>,
+  newValue: number,
+  stateName: string
+) {
+  if (ref.current) {
+    map.setFeatureState(
+      {
+        source: SOURCE_ZONES,
+        id: ref.current,
+      },
+      {
+        [stateName]: false,
+      }
+    );
+  }
+  ref.current = newValue;
+  map.setFeatureState(
+    {
+      source: SOURCE_ZONES,
+      id: newValue,
+    },
+    {
+      [stateName]: true,
+    }
+  );
+}
+
+export const App: React.FC<Props> = ({}) => {
   const zoneState: ZoneState = useSelector(
     (state: ZoneState) => state,
     shallowEqual
   );
   const dispatch: Dispatch<any> = useDispatch();
   const mapElement = useRef<HTMLDivElement>(null);
-  const hoveredId = useRef<number>();
-  const selectedId = useRef<number>();
+  const hoveredId = useRef<number>(-1);
+  const selectedId = useRef<number>(-1);
 
   const selectZoneDispatch = useCallback(
     (locationId: number) => {
@@ -36,56 +65,17 @@ export const App: React.FC<Props> = ({}) => {
 
   const onZoneSelect = useCallback((map: MapBoxGL.Map, e: any) => {
     if (e.features && e.features.length > 0) {
-      let zone = e.features[0].properties as Zone;
-      if (selectedId.current) {
-        map.setFeatureState(
-          {
-            source: SOURCE_ZONES,
-            id: selectedId.current,
-          },
-          {
-            selected: false,
-          }
-        );
-      }
+      let zone = e.features[0].properties as ZoneFeature;
+      updateFeature(map, selectedId, zone.LocationID, "selected");
       selectZoneDispatch(zone.LocationID);
-      map.setFeatureState(
-        {
-          source: SOURCE_ZONES,
-          id: zone.LocationID,
-        },
-        {
-          selected: true,
-        }
-      );
     }
   }, []);
 
   const onZoneHover = useCallback((map: MapBoxGL.Map, e: any) => {
     map.getCanvas().style.cursor = "pointer";
     if (e.features && e.features.length > 0) {
-      let zone = e.features[0].properties as Zone;
-      if (hoveredId.current) {
-        map.setFeatureState(
-          {
-            source: SOURCE_ZONES,
-            id: hoveredId.current,
-          },
-          {
-            hovered: false,
-          }
-        );
-      }
-      hoveredId.current = zone.LocationID;
-      map.setFeatureState(
-        {
-          source: SOURCE_ZONES,
-          id: zone.LocationID,
-        },
-        {
-          hovered: true,
-        }
-      );
+      let zone = e.features[0].properties as ZoneFeature;
+      updateFeature(map, hoveredId, zone.LocationID, "hovered");
     }
   }, []);
 

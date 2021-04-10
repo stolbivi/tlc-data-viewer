@@ -1,7 +1,7 @@
 import * as ActionTypes from "./ActionTypes";
 
 const reducer = (
-  state: ZoneState = { selectedId: -1 },
+  state: ZoneState = { selectedId: -1, routes: [] },
   action: ZoneAction
 ): ZoneState => {
   console.log("Reducing with:", action);

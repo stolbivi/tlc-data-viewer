@@ -13,9 +13,9 @@ const app = express();
 app.use(express.static("public"));
 app.use(urlencoded({ extended: true }));
 
-app.get("/adj", (req: any, res: any) => {
+app.get("/dest", (req: any, res: any) => {
   try {
-    console.log("Processing adj request:", req.query);
+    console.log("Processing dest request:", req.query);
     if (!req.query.startId) {
       res.json({ error: "Missing query parameter: startId" });
       return;

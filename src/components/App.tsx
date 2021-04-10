@@ -3,7 +3,7 @@ import { Container } from "react-bootstrap";
 import { Dispatch } from "redux";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import MapBoxGL from "mapbox-gl";
-import { selectZone } from "../store/ActionCreators";
+import { getDest, selectZone } from "../store/ActionCreators";
 
 type Props = {};
 
@@ -46,6 +46,22 @@ function updateFeature(
   );
 }
 
+function setDestination(
+  map: MapBoxGL.Map,
+  endId: number,
+  destination: boolean
+) {
+  map.setFeatureState(
+    {
+      source: SOURCE_ZONES,
+      id: endId,
+    },
+    {
+      destination: destination,
+    }
+  );
+}
+
 export const App: React.FC<Props> = ({}) => {
   const zoneState: ZoneState = useSelector(
     (state: ZoneState) => state,
@@ -53,8 +69,10 @@ export const App: React.FC<Props> = ({}) => {
   );
   const dispatch: Dispatch<any> = useDispatch();
   const mapElement = useRef<HTMLDivElement>(null);
-  const hoveredId = useRef<number>(-1);
-  const selectedId = useRef<number>(-1);
+  const mapRef = useRef<MapBoxGL.Map>();
+  const hoveredIdRef = useRef<number>(-1);
+  const selectedIdRef = useRef<number>(-1);
+  const endIdsRef = useRef<number[]>([]);
 
   const selectZoneDispatch = useCallback(
     (locationId: number) => {
@@ -63,11 +81,19 @@ export const App: React.FC<Props> = ({}) => {
     [dispatch]
   );
 
+  const getDestDispatch = useCallback(
+    (startId: number) => {
+      dispatch(getDest(startId, 1577854800, 1577941199));
+    },
+    [dispatch]
+  );
+
   const onZoneSelect = useCallback((map: MapBoxGL.Map, e: any) => {
     if (e.features && e.features.length > 0) {
       let zone = e.features[0].properties as ZoneFeature;
-      updateFeature(map, selectedId, zone.LocationID, "selected");
+      updateFeature(map, selectedIdRef, zone.LocationID, "selected");
       selectZoneDispatch(zone.LocationID);
+      getDestDispatch(zone.LocationID);
     }
   }, []);
 
@@ -75,29 +101,37 @@ export const App: React.FC<Props> = ({}) => {
     map.getCanvas().style.cursor = "pointer";
     if (e.features && e.features.length > 0) {
       let zone = e.features[0].properties as ZoneFeature;
-      updateFeature(map, hoveredId, zone.LocationID, "hovered");
+      updateFeature(map, hoveredIdRef, zone.LocationID, "hovered");
     }
   }, []);
 
   const onZoneLeave = useCallback((map: MapBoxGL.Map) => {
     map.getCanvas().style.cursor = "";
-    if (hoveredId.current) {
+    if (hoveredIdRef.current) {
       map.setFeatureState(
         {
           source: SOURCE_ZONES,
-          id: hoveredId.current,
+          id: hoveredIdRef.current,
         },
         {
           hovered: false,
         }
       );
     }
-    hoveredId.current = -1;
+    hoveredIdRef.current = -1;
   }, []);
 
   useEffect(() => {
-    selectedId.current = zoneState.selectedId;
-  }, [zoneState.selectedId]);
+    endIdsRef.current.forEach((endId) =>
+      setDestination(mapRef.current as mapboxgl.Map, endId, false)
+    );
+    endIdsRef.current = zoneState.endIds;
+    if (mapRef.current) {
+      zoneState.endIds.forEach((endId) =>
+        setDestination(mapRef.current as mapboxgl.Map, endId, true)
+      );
+    }
+  }, [zoneState.endIds]);
 
   useEffect(() => {
     MapBoxGL.accessToken = TOKEN;
@@ -107,6 +141,7 @@ export const App: React.FC<Props> = ({}) => {
       center: [-74.06217, 40.67033],
       zoom: 9.5,
     });
+    mapRef.current = map;
     map.on("load", function () {
       map.addSource(SOURCE_ZONES, {
         type: "geojson",
@@ -135,17 +170,22 @@ export const App: React.FC<Props> = ({}) => {
             "#1a42ff",
             "EWR",
             "#941aff",
-            /* other */ "#ccc",
+            /* other */ "#808080",
           ],
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "selected"], false],
-            0.75,
+            0.85,
             [
               "case",
-              ["boolean", ["feature-state", "hovered"], false],
-              0.5,
-              0.25,
+              ["boolean", ["feature-state", "destination"], false],
+              0.65,
+              [
+                "case",
+                ["boolean", ["feature-state", "hovered"], false],
+                0.45,
+                0.15,
+              ],
             ],
           ],
         },
@@ -156,8 +196,34 @@ export const App: React.FC<Props> = ({}) => {
         source: SOURCE_ZONES,
         layout: {},
         paint: {
-          "line-color": "rgb(25,120,21)",
-          "line-width": 1,
+          "line-color": [
+            "case",
+            ["boolean", ["feature-state", "selected"], false],
+            "#800000",
+            [
+              "case",
+              ["boolean", ["feature-state", "destination"], false],
+              "#008000",
+              [
+                "case",
+                ["boolean", ["feature-state", "hovered"], false],
+                "#fff",
+                "rgba(0,0,0,0)",
+              ],
+            ],
+          ],
+          "line-width": [
+            "case",
+            ["boolean", ["feature-state", "selected"], false],
+            3,
+            ["case", ["boolean", ["feature-state", "hovered"], false], 3, 1],
+          ],
+          "line-offset": [
+            "case",
+            ["boolean", ["feature-state", "selected"], false],
+            -1,
+            ["case", ["boolean", ["feature-state", "hovered"], false], -1, 0],
+          ],
         },
       });
       map.addLayer({

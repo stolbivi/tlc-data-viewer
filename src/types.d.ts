@@ -10,6 +10,7 @@ interface ZoneFeature {
 interface ZoneState {
   selectedId: number;
   routes: Route[];
+  endIds: number[];
 }
 
 interface ZoneAction {

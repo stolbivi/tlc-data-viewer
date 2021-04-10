@@ -41,10 +41,9 @@ export const getDest = (
     fetch(url.toString(), init)
       .then((res) => res.json())
       .then((json) => {
-        console.log(json);
         const newAction: GetDestAction = {
           ...GET_DEST_ACTION,
-          routes: [],
+          routes: json.result,
         };
         dispatch(newAction);
       })

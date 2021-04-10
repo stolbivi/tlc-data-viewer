@@ -48,7 +48,7 @@ app.get("/dest", (req: any, res: any) => {
       }
       filter += ` and #src in (${sourceAttributes.join(",")})`;
     }
-    console.log("Filter:", filter, "Attributes:", attributeValues);
+    // console.log("Filter:", filter, "Attributes:", attributeValues);
     const scanCommand = new QueryCommand({
       KeyConditionExpression: "startId = :sid",
       FilterExpression: filter,

@@ -1,7 +1,7 @@
 import * as ActionTypes from "./ActionTypes";
 
 const reducer = (
-  state: ZoneState = { selectedId: -1, routes: [] },
+  state: ZoneState = { selectedId: -1, routes: [], endIds: [] },
   action: ZoneAction
 ): ZoneState => {
   console.log("Reducing with:", action);
@@ -11,6 +11,20 @@ const reducer = (
       let newState = {
         ...state,
         selectedId: selectZoneAction.locationId,
+      };
+      console.log("New state:", newState);
+      return newState;
+    }
+    case ActionTypes.GET_DEST: {
+      let getDestAction = action as GetDestAction;
+      let endIdSet = new Set([
+        ...getDestAction.routes.map((route) => route.endId),
+      ]);
+      endIdSet.values();
+      let newState = {
+        ...state,
+        routes: getDestAction.routes,
+        endIds: [...endIdSet],
       };
       console.log("New state:", newState);
       return newState;

@@ -49,6 +49,7 @@ interface RouteStats {
   totalDistance: number;
   totalTime: number;
   totalAmount: number;
+  totalPassengers: number;
   averageSpeed: number;
   averageAmount: number;
   averagePerMinute: number;

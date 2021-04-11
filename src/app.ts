@@ -60,7 +60,6 @@ app.get("/dest", (req: any, res: any) => {
     dynamoDbClient.send(scanCommand).then(
       (results: any) => {
         let result = results.Items.map((item: any) => itemToJSON(item));
-        // setTimeout(() => res.json({ pages: validPages }), 2000);
         res.json({ result });
       },
       (error: any) => {

@@ -35,6 +35,10 @@ export const Legend: React.FC<Props> = ({}) => {
         </div>
       </div>
       <div className="d-flex w-100">
+        <div className="mr-2">Total passengers:</div>
+        <div className="ml-auto">{zoneState.sourceStats.totalPassengers}</div>
+      </div>
+      <div className="d-flex w-100">
         <div className="mr-2">Average speed:</div>
         <div className="ml-auto">
           {zoneState.sourceStats.averageSpeed.toFixed(2)} m/h

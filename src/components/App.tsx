@@ -7,8 +7,9 @@ import { getDest, selectZone } from "../store/ActionCreators";
 import moment from "moment";
 import TimePicker from "rc-time-picker";
 import { DatePickerInput } from "rc-datepicker";
-
-type Props = {};
+import { Legend } from "./Legend";
+import { setDestination, updateFeature } from "../map/FeatureUtils";
+import { getEpoch, TIME_FORMAT } from "../map/DateTimeUtils";
 
 const KEY = "7y3DwqhCAc5Y7Wr95RR9";
 const TOKEN =
@@ -23,69 +24,8 @@ const initialStartDate = new Date(2020, 0, 1);
 const initialEndDate = new Date(2020, 0, 1);
 const initialStartTime = moment().hour(0).minute(0).second(0);
 const initialEndTime = moment().hour(23).minute(59).second(59);
-const DATE_FORMAT = "YYYY-MM-DD";
-const TIME_FORMAT = "h:mm:ss a";
 
-function updateFeature(
-  map: MapBoxGL.Map,
-  ref: React.MutableRefObject<number>,
-  newValue: number,
-  stateName: string
-) {
-  if (ref.current) {
-    map.setFeatureState(
-      {
-        source: SOURCE_ZONES,
-        id: ref.current,
-      },
-      {
-        [stateName]: false,
-      }
-    );
-  }
-  ref.current = newValue;
-  map.setFeatureState(
-    {
-      source: SOURCE_ZONES,
-      id: newValue,
-    },
-    {
-      [stateName]: true,
-    }
-  );
-}
-
-function setDestination(
-  map: MapBoxGL.Map,
-  endId: number,
-  destination: boolean
-) {
-  map.setFeatureState(
-    {
-      source: SOURCE_ZONES,
-      id: endId,
-    },
-    {
-      destination: destination,
-    }
-  );
-}
-
-function getEpoch(date: Date, time: moment.Moment) {
-  console.log(
-    date,
-    time.format(TIME_FORMAT),
-    time.toDate(),
-    time.toDate().getTime()
-  );
-  let dateString = moment(date).format(DATE_FORMAT);
-  let timeString = time.format(TIME_FORMAT);
-  let newDate = moment(
-    dateString + "_" + timeString,
-    DATE_FORMAT + "_" + TIME_FORMAT
-  );
-  return Math.floor(newDate.toDate().getTime() / 1000);
-}
+type Props = {};
 
 export const App: React.FC<Props> = ({}) => {
   const zoneState: ZoneState = useSelector(
@@ -97,7 +37,7 @@ export const App: React.FC<Props> = ({}) => {
   const mapRef = useRef<MapBoxGL.Map>();
   const hoveredIdRef = useRef<number>(-1);
   const selectedIdRef = useRef<number>(-1);
-  const endIdsRef = useRef<number[]>([]);
+  const endIdsRef = useRef<Map<number, Route[]>>(new Map<number, Route[]>());
   const [startDate, setStartDate] = useState<Date>(initialStartDate);
   const [startTime, setStartTime] = useState<moment.Moment>(initialStartTime);
   const [endDate, setEndDate] = useState<Date>(initialEndDate);
@@ -123,7 +63,13 @@ export const App: React.FC<Props> = ({}) => {
   const onZoneSelect = useCallback((map: MapBoxGL.Map, e: any) => {
     if (e.features && e.features.length > 0) {
       let zone = e.features[0].properties as ZoneFeature;
-      updateFeature(map, selectedIdRef, zone.LocationID, "selected");
+      updateFeature(
+        SOURCE_ZONES,
+        map,
+        selectedIdRef,
+        zone.LocationID,
+        "selected"
+      );
       selectZoneDispatch(zone.LocationID);
     }
   }, []);
@@ -132,7 +78,13 @@ export const App: React.FC<Props> = ({}) => {
     map.getCanvas().style.cursor = "pointer";
     if (e.features && e.features.length > 0) {
       let zone = e.features[0].properties as ZoneFeature;
-      updateFeature(map, hoveredIdRef, zone.LocationID, "hovered");
+      updateFeature(
+        SOURCE_ZONES,
+        map,
+        hoveredIdRef,
+        zone.LocationID,
+        "hovered"
+      );
     }
   }, []);
 
@@ -153,16 +105,21 @@ export const App: React.FC<Props> = ({}) => {
   }, []);
 
   useEffect(() => {
-    endIdsRef.current.forEach((endId) =>
-      setDestination(mapRef.current as MapBoxGL.Map, endId, false)
+    [...endIdsRef.current.keys()].forEach((endId) =>
+      setDestination(SOURCE_ZONES, mapRef.current as MapBoxGL.Map, endId, false)
     );
-    endIdsRef.current = zoneState.endIds;
+    endIdsRef.current = zoneState.routesPerEndId;
     if (mapRef.current) {
-      zoneState.endIds.forEach((endId) =>
-        setDestination(mapRef.current as MapBoxGL.Map, endId, true)
+      [...zoneState.routesPerEndId.keys()].forEach((endId) =>
+        setDestination(
+          SOURCE_ZONES,
+          mapRef.current as MapBoxGL.Map,
+          endId,
+          true
+        )
       );
     }
-  }, [zoneState.endIds]);
+  }, [zoneState.routesPerEndId]);
 
   useEffect(() => {
     let sources = [];
@@ -314,6 +271,7 @@ export const App: React.FC<Props> = ({}) => {
         <h5 className="user-select-none">TLC Data Viewer</h5>
         <div className="d-flex">
           <div ref={mapElement} className="map" />
+          {zoneState.selectedId > 0 && <Legend />}
           <div className="d-flex flex-column align-items-start justify-content-start ml-2">
             <ButtonGroup toggle className="mb-2">
               <ToggleButton

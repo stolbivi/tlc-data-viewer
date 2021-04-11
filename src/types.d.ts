@@ -9,8 +9,8 @@ interface ZoneFeature {
 
 interface ZoneState {
   selectedId: number;
-  routes: Route[];
-  endIds: number[];
+  routesPerEndId: Map<number, Route[]>;
+  sourceStats: RouteStats;
 }
 
 interface ZoneAction {
@@ -44,8 +44,15 @@ interface Route {
   total: number;
 }
 
+interface RouteStats {
+  size: number;
+  totalDistance: number;
+  totalTime: number;
+  totalAmount: number;
+  averageSpeed: number;
+  averageAmount: number;
+  averagePerMinute: number;
+  averagePerMile: number;
+}
+
 type Dispatch = (action: ZoneAction) => ZoneAction;
-
-type OnSuccessCallback<T> = (response: T, message?: string) => void;
-
-type OnErrorCallback = (error: string) => void;

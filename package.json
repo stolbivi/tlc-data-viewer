@@ -7,9 +7,10 @@
     "test": "jest",
     "init": "node ./scripts/build.js --command init",
     "wp": "webpack --mode production",
-    "start": "node .",
+    "run": "node .",
     "watch": "nodemon --delay 10",
     "release": "npm run init & npm run wp",
+    "start": "npm run init & npm run wp & node .",
     "pack": "node ./scripts/build.js --command pack"
   },
   "keywords": [],

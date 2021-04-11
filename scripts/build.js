@@ -15,19 +15,9 @@ function init() {
     });
 }
 
-function formatDate(date) {
-    const ye = new Intl.DateTimeFormat('en', {year: 'numeric'}).format(date);
-    const mo = new Intl.DateTimeFormat('en', {month: 'short'}).format(date);
-    const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date);
-    return (`${ye}-${mo}-${da}`);
-}
-
 switch (args['command']) {
     case 'init':
         init();
-        break;
-    case 'pack':
-        pack();
         break;
 }
 

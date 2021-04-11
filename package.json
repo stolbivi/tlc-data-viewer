@@ -9,7 +9,7 @@
     "wp": "webpack --mode production",
     "start": "node .",
     "watch": "nodemon --delay 10",
-    "heroku-postbuild": "npm run init & npm run wp",
+    "heroku-postbuild": "npm run init & npm run wp"
   },
   "keywords": [],
   "author": "",

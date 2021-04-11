@@ -1,6 +1,7 @@
 import * as ActionTypes from "./ActionTypes";
 
 const BASE_URL = "http://localhost:8080";
+// const BASE_URL = "https://tlc-data-viewer.herokuapp.com:8080";
 
 const SELECT_ZONE_ACTION = {
   type: ActionTypes.SELECT_ZONE,

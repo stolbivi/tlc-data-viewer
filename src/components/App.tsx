@@ -6,6 +6,7 @@ import MapBoxGL from "mapbox-gl";
 import { getDest, selectZone } from "../store/ActionCreators";
 import moment from "moment";
 import TimePicker from "rc-time-picker";
+import { DatePickerInput } from "rc-datepicker";
 
 type Props = {};
 
@@ -18,9 +19,12 @@ const DATA =
   KEY;
 const SOURCE_ZONES = "zones-overlay";
 const LAYER_ZONE_FILL = "zone-fill";
+const initialStartDate = new Date(2020, 0, 1);
+const initialEndDate = new Date(2020, 0, 1);
 const initialStartTime = moment().hour(0).minute(0).second(0);
 const initialEndTime = moment().hour(23).minute(59).second(59);
-const format = "h:mm:ss a";
+const DATE_FORMAT = "YYYY-MM-DD";
+const TIME_FORMAT = "h:mm:ss a";
 
 function updateFeature(
   map: MapBoxGL.Map,
@@ -67,6 +71,22 @@ function setDestination(
   );
 }
 
+function getEpoch(date: Date, time: moment.Moment) {
+  console.log(
+    date,
+    time.format(TIME_FORMAT),
+    time.toDate(),
+    time.toDate().getTime()
+  );
+  let dateString = moment(date).format(DATE_FORMAT);
+  let timeString = time.format(TIME_FORMAT);
+  let newDate = moment(
+    dateString + "_" + timeString,
+    DATE_FORMAT + "_" + TIME_FORMAT
+  );
+  return Math.floor(newDate.toDate().getTime() / 1000);
+}
+
 export const App: React.FC<Props> = ({}) => {
   const zoneState: ZoneState = useSelector(
     (state: ZoneState) => state,
@@ -78,7 +98,9 @@ export const App: React.FC<Props> = ({}) => {
   const hoveredIdRef = useRef<number>(-1);
   const selectedIdRef = useRef<number>(-1);
   const endIdsRef = useRef<number[]>([]);
+  const [startDate, setStartDate] = useState<Date>(initialStartDate);
   const [startTime, setStartTime] = useState<moment.Moment>(initialStartTime);
+  const [endDate, setEndDate] = useState<Date>(initialEndDate);
   const [endTime, setEndTime] = useState<moment.Moment>(initialEndTime);
   const [sourceY, setSourceY] = useState<boolean>(true);
   const [sourceG, setSourceG] = useState<boolean>(true);
@@ -92,8 +114,8 @@ export const App: React.FC<Props> = ({}) => {
   );
 
   const getDestDispatch = useCallback(
-    (startId: number, sources?: string) => {
-      dispatch(getDest(startId, 1577854800, 1577941199, sources));
+    (startId: number, start: number, end: number, sources?: string) => {
+      dispatch(getDest(startId, start, end, sources));
     },
     [dispatch]
   );
@@ -154,11 +176,29 @@ export const App: React.FC<Props> = ({}) => {
       sources.push("fh");
     }
     if (sources.length > 0) {
-      getDestDispatch(zoneState.selectedId, sources.join(","));
+      getDestDispatch(
+        zoneState.selectedId,
+        getEpoch(startDate, startTime),
+        getEpoch(endDate, endTime),
+        sources.join(",")
+      );
     } else {
-      getDestDispatch(zoneState.selectedId);
+      getDestDispatch(
+        zoneState.selectedId,
+        getEpoch(startDate, startTime),
+        getEpoch(endDate, endTime)
+      );
     }
-  }, [zoneState.selectedId, sourceY, sourceG, sourceFH]);
+  }, [
+    zoneState.selectedId,
+    startDate,
+    startTime,
+    endDate,
+    endTime,
+    sourceY,
+    sourceG,
+    sourceFH,
+  ]);
 
   useEffect(() => {
     MapBoxGL.accessToken = TOKEN;
@@ -274,7 +314,7 @@ export const App: React.FC<Props> = ({}) => {
         <h5 className="user-select-none">TLC Data Viewer</h5>
         <div className="d-flex">
           <div ref={mapElement} className="map" />
-          <div className="d-flex flex-column align-items-start justify-content-start m-1">
+          <div className="d-flex flex-column align-items-start justify-content-start ml-2">
             <ButtonGroup toggle className="mb-2">
               <ToggleButton
                 type="checkbox"
@@ -305,15 +345,33 @@ export const App: React.FC<Props> = ({}) => {
               </ToggleButton>
             </ButtonGroup>
             <label>
+              <small>Start date</small>
+            </label>
+            <DatePickerInput
+              position="bottom"
+              value={startDate}
+              onChange={setStartDate}
+              showOnInputClick
+            />
+            <label>
               <small>Start time</small>
             </label>
             <TimePicker
               showSecond={true}
               value={startTime}
               onChange={setStartTime}
-              format={format}
+              format={TIME_FORMAT}
               use12Hours
               inputReadOnly
+            />
+            <label>
+              <small>End date</small>
+            </label>
+            <DatePickerInput
+              position="bottom"
+              value={endDate}
+              onChange={setEndDate}
+              showOnInputClick
             />
             <label>
               <small>End time</small>
@@ -322,7 +380,7 @@ export const App: React.FC<Props> = ({}) => {
               showSecond={true}
               value={endTime}
               onChange={setEndTime}
-              format={format}
+              format={TIME_FORMAT}
               use12Hours
               inputReadOnly
             />

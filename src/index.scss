@@ -1,5 +1,6 @@
 @import "~bootstrap";
 @import '~rc-time-picker/assets/index.css';
+@import './datepicker';
 
 body {
   margin: 0;
@@ -13,5 +14,5 @@ body {
 
 .map {
   width: 75vw;
-  height: 85vh;
+  height: 90vh;
 }

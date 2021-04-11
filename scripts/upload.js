@@ -1,5 +1,4 @@
 require("dotenv").config();
-// const sleep = require("sleep");
 const args = require("minimist")(process.argv.slice(2));
 const csv = require("csv-parser");
 const fs = require("fs");
@@ -28,16 +27,16 @@ function getItem(id, source, row) {
     dropOffTime: getTimestamp(row.dropoff_datetime),
     startId: Number(row.PULocationID),
     endId: Number(row.DOLocationID),
-    // passengerCount: Number(row.passenger_count),
-    // distance: Number(row.trip_distance),
-    // fare: Number(row.fare_amount),
-    // extra: Number(row.extra),
-    // mtaTax: Number(row.mta_tax),
-    // tip: Number(row.tip_amount),
-    // tolls: Number(row.tolls_amount),
-    // improvementSurcharge: Number(row.improvement_surcharge),
-    // congestionSurcharge: Number(row.congestion_surcharge),
-    // total: Number(row.total_amount),
+    passengerCount: Number(row.passenger_count),
+    distance: Number(row.trip_distance),
+    fare: Number(row.fare_amount),
+    extra: Number(row.extra),
+    mtaTax: Number(row.mta_tax),
+    tip: Number(row.tip_amount),
+    tolls: Number(row.tolls_amount),
+    improvementSurcharge: Number(row.improvement_surcharge),
+    congestionSurcharge: Number(row.congestion_surcharge),
+    total: Number(row.total_amount),
   };
 }
 
@@ -62,7 +61,6 @@ fs.createReadStream(fileName)
           RequestItems: { [process.env.TABLE_TLC]: batch },
         });
         await dynamoDbClient.send(command);
-        // sleep.msleep(10);
         batch.length = 0;
       } else {
         batch.push({ PutRequest: { Item: itemFromJSON(item) } });

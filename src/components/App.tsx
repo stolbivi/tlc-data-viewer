@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useRef } from "react";
-import { Container } from "react-bootstrap";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ButtonGroup, Container, ToggleButton } from "react-bootstrap";
 import { Dispatch } from "redux";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import MapBoxGL from "mapbox-gl";
 import { getDest, selectZone } from "../store/ActionCreators";
+import moment from "moment";
+import TimePicker from "rc-time-picker";
 
 type Props = {};
 
@@ -16,6 +18,9 @@ const DATA =
   KEY;
 const SOURCE_ZONES = "zones-overlay";
 const LAYER_ZONE_FILL = "zone-fill";
+const initialStartTime = moment().hour(0).minute(0).second(0);
+const initialEndTime = moment().hour(23).minute(59).second(59);
+const format = "h:mm:ss a";
 
 function updateFeature(
   map: MapBoxGL.Map,
@@ -73,6 +78,11 @@ export const App: React.FC<Props> = ({}) => {
   const hoveredIdRef = useRef<number>(-1);
   const selectedIdRef = useRef<number>(-1);
   const endIdsRef = useRef<number[]>([]);
+  const [startTime, setStartTime] = useState<moment.Moment>(initialStartTime);
+  const [endTime, setEndTime] = useState<moment.Moment>(initialEndTime);
+  const [sourceY, setSourceY] = useState<boolean>(true);
+  const [sourceG, setSourceG] = useState<boolean>(true);
+  const [sourceFH, setSourceFH] = useState<boolean>(true);
 
   const selectZoneDispatch = useCallback(
     (locationId: number) => {
@@ -82,8 +92,8 @@ export const App: React.FC<Props> = ({}) => {
   );
 
   const getDestDispatch = useCallback(
-    (startId: number) => {
-      dispatch(getDest(startId, 1577854800, 1577941199));
+    (startId: number, sources?: string) => {
+      dispatch(getDest(startId, 1577854800, 1577941199, sources));
     },
     [dispatch]
   );
@@ -93,7 +103,6 @@ export const App: React.FC<Props> = ({}) => {
       let zone = e.features[0].properties as ZoneFeature;
       updateFeature(map, selectedIdRef, zone.LocationID, "selected");
       selectZoneDispatch(zone.LocationID);
-      getDestDispatch(zone.LocationID);
     }
   }, []);
 
@@ -123,15 +132,33 @@ export const App: React.FC<Props> = ({}) => {
 
   useEffect(() => {
     endIdsRef.current.forEach((endId) =>
-      setDestination(mapRef.current as mapboxgl.Map, endId, false)
+      setDestination(mapRef.current as MapBoxGL.Map, endId, false)
     );
     endIdsRef.current = zoneState.endIds;
     if (mapRef.current) {
       zoneState.endIds.forEach((endId) =>
-        setDestination(mapRef.current as mapboxgl.Map, endId, true)
+        setDestination(mapRef.current as MapBoxGL.Map, endId, true)
       );
     }
   }, [zoneState.endIds]);
+
+  useEffect(() => {
+    let sources = [];
+    if (sourceY) {
+      sources.push("y");
+    }
+    if (sourceG) {
+      sources.push("g");
+    }
+    if (sourceFH) {
+      sources.push("fh");
+    }
+    if (sources.length > 0) {
+      getDestDispatch(zoneState.selectedId, sources.join(","));
+    } else {
+      getDestDispatch(zoneState.selectedId);
+    }
+  }, [zoneState.selectedId, sourceY, sourceG, sourceFH]);
 
   useEffect(() => {
     MapBoxGL.accessToken = TOKEN;
@@ -245,9 +272,63 @@ export const App: React.FC<Props> = ({}) => {
     <Container>
       <div className="d-flex flex-column align-items-center justify-content-center m-1">
         <h5 className="user-select-none">TLC Data Viewer</h5>
-        <div ref={mapElement} className="map"></div>
+        <div className="d-flex">
+          <div ref={mapElement} className="map" />
+          <div className="d-flex flex-column align-items-start justify-content-start m-1">
+            <ButtonGroup toggle className="mb-2">
+              <ToggleButton
+                type="checkbox"
+                variant="warning"
+                checked={sourceY}
+                value="1"
+                onChange={(e) => setSourceY(e.currentTarget.checked)}
+              >
+                Yellow
+              </ToggleButton>
+              <ToggleButton
+                type="checkbox"
+                variant="success"
+                checked={sourceG}
+                value="1"
+                onChange={(e) => setSourceG(e.currentTarget.checked)}
+              >
+                Green
+              </ToggleButton>
+              <ToggleButton
+                type="checkbox"
+                variant="primary"
+                checked={sourceFH}
+                value="1"
+                onChange={(e) => setSourceFH(e.currentTarget.checked)}
+              >
+                FH
+              </ToggleButton>
+            </ButtonGroup>
+            <label>
+              <small>Start time</small>
+            </label>
+            <TimePicker
+              showSecond={true}
+              value={startTime}
+              onChange={setStartTime}
+              format={format}
+              use12Hours
+              inputReadOnly
+            />
+            <label>
+              <small>End time</small>
+            </label>
+            <TimePicker
+              showSecond={true}
+              value={endTime}
+              onChange={setEndTime}
+              format={format}
+              use12Hours
+              inputReadOnly
+            />
+          </div>
+        </div>
       </div>
-      <div>{zoneState.selectedId}</div>
     </Container>
   );
 };

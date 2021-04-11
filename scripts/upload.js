@@ -26,18 +26,18 @@ function getItem(id, source, row) {
     source,
     pickupTime: getTimestamp(row.pickup_datetime),
     dropOffTime: getTimestamp(row.dropoff_datetime),
-    passengerCount: Number(row.passenger_count),
-    distance: Number(row.trip_distance),
     startId: Number(row.PULocationID),
     endId: Number(row.DOLocationID),
-    fare: Number(row.fare_amount),
-    extra: Number(row.extra),
-    mtaTax: Number(row.mta_tax),
-    tip: Number(row.tip_amount),
-    tolls: Number(row.tolls_amount),
-    improvementSurcharge: Number(row.improvement_surcharge),
-    congestionSurcharge: Number(row.congestion_surcharge),
-    total: Number(row.total_amount),
+    // passengerCount: Number(row.passenger_count),
+    // distance: Number(row.trip_distance),
+    // fare: Number(row.fare_amount),
+    // extra: Number(row.extra),
+    // mtaTax: Number(row.mta_tax),
+    // tip: Number(row.tip_amount),
+    // tolls: Number(row.tolls_amount),
+    // improvementSurcharge: Number(row.improvement_surcharge),
+    // congestionSurcharge: Number(row.congestion_surcharge),
+    // total: Number(row.total_amount),
   };
 }
 
@@ -56,7 +56,7 @@ fs.createReadStream(fileName)
     let batch = [];
     for (let i = 0; i < data.length; i++) {
       let item = data[i];
-      console.log(item.id);
+      console.log(item);
       if (batch.length >= process.env.BATCH_SIZE) {
         const command = new BatchWriteItemCommand({
           RequestItems: { [process.env.TABLE_TLC]: batch },

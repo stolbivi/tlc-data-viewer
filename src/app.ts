@@ -1,4 +1,3 @@
-// @ts-ignore
 import express from "express";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 

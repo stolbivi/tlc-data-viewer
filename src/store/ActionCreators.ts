@@ -35,7 +35,7 @@ export const getDest = (
     let url = new URL(BASE_URL + "/dest");
     let params = `startId=${startId}&start=${start}&end=${end}`;
     if (source) {
-      params += `source=${source}`;
+      params += `&source=${source}`;
     }
     url.search = new URLSearchParams(params).toString();
     fetch(url.toString(), init)

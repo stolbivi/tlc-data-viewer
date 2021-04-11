@@ -10,7 +10,6 @@
     "start": "node .",
     "watch": "nodemon --delay 10",
     "heroku-postbuild": "npm run init & npm run wp",
-    "pack": "node ./scripts/build.js --command pack"
   },
   "keywords": [],
   "author": "",

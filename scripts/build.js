@@ -1,6 +1,5 @@
 const fsExtra = require('fs-extra');
 const args = require('minimist')(process.argv.slice(2));
-const {zip} = require('zip-a-folder');
 
 const paths = {
     dist: 'public',
@@ -21,12 +20,6 @@ function formatDate(date) {
     const mo = new Intl.DateTimeFormat('en', {month: 'short'}).format(date);
     const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date);
     return (`${ye}-${mo}-${da}`);
-}
-
-async function pack() {
-    let pathToZip = `${paths.dist}_${formatDate(new Date())}.zip`;
-    console.log('Packing:', paths.dist, 'to:', pathToZip);
-    await zip(paths.dist, pathToZip);
 }
 
 switch (args['command']) {

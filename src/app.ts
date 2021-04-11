@@ -1,14 +1,17 @@
+require("dotenv").config();
+
 import express from "express";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 
 const urlencoded = require("body-parser").urlencoded;
 const { itemToJSON } = require("./db/DynamoDBData");
-
-require("dotenv").config();
+const cors = require("cors");
 
 const dynamoDbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 const app = express();
+app.use(cors());
+app.use(express.json());
 app.use(express.static("public"));
 app.use(urlencoded({ extended: true }));
 

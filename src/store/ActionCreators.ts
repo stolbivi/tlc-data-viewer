@@ -1,7 +1,7 @@
 import * as ActionTypes from "./ActionTypes";
 
 // const BASE_URL = "http://localhost:8080";
-const BASE_URL = "https://tlc-data-viewer.herokuapp.com";
+const BASE_URL = "http://tlc-data-viewer.herokuapp.com";
 
 const SELECT_ZONE_ACTION = {
   type: ActionTypes.SELECT_ZONE,
@@ -27,6 +27,7 @@ export const getDest = (
 ) => {
   return (dispatch: Dispatch) => {
     let init: any = {
+      mode: "no-cors",
       method: "GET",
       headers: {
         Accept: "application/json",
@@ -49,6 +50,7 @@ export const getDest = (
         dispatch(newAction);
       })
       .catch((e) => {
+        console.error(e);
         console.error("Error communicating to server: " + JSON.stringify(e));
       });
   };
